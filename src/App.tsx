@@ -4,20 +4,22 @@ import { db } from './firebase';
 import { SearchBar } from './components/SearchBar';
 import { SearchResults } from './components/SearchResults';
 import { Book } from './types';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookOpen } from '@fortawesome/free-solid-svg-icons'; // Importing the book icon
+import CITLogo from './logo/CIT logo.png';
 
 function App() {
   const [searchResults, setSearchResults] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
 
   const handleSearch = async (searchQuery: string) => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
+      setSearched(false);
       return;
     }
 
     setLoading(true);
+    setSearched(true);
     try {
       const booksRef = collection(db, 'books-collection');
       const qTitle = query(
@@ -38,11 +40,7 @@ function App() {
         where('callNumber', '<=', searchQuery + '\uf8ff')
       );
 
-      const querySnapshots = await Promise.all([
-        getDocs(qTitle),
-        getDocs(qAuthor),
-        getDocs(qCallNumber),
-      ]);
+      const querySnapshots = await Promise.all([getDocs(qTitle), getDocs(qAuthor), getDocs(qCallNumber)]);
 
       const books: Book[] = [];
       querySnapshots.forEach((querySnapshot) => {
@@ -71,42 +69,32 @@ function App() {
     }
   };
 
-  const handleBorrow = () => {
-    console.log('Borrow button clicked');
-    // Add logic to handle borrowing here
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50">
-      
-      {/* Navbar Section */}
-      <nav className="bg-blue-600 text-white p-4 fixed w-full top-0 left-0 z-10 shadow-lg">
-        <div className="container mx-auto flex justify-between items-center">
-          {/* Title */}
-          <div>
-            <h1 className="text-2xl font-bold">CIT Online Public Access Catalog</h1>
-            <p className="text-sm">Discover our vast collection of books</p>
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-200 flex flex-col items-center justify-start p-4 sm:p-6 overflow-hidden">
+      {/* Header Section */}
+      <div className="text-center mb-4 w-full">
+        {/* Logo with subtle shadow */}
+        <img src={CITLogo} alt="CIT Logo" className="h-16 mx-auto mb-3 shadow-sm" />
 
-          {/* Borrow Button */}
-          <button
-            onClick={handleBorrow}
-            className="bg-green-500 text-white p-3 rounded-full hover:bg-green-600 transition duration-200 flex items-center justify-center"
-            title="Borrow a Book"
-          >
-            <FontAwesomeIcon icon={faBookOpen} className="text-xl" />
-          </button>
-        </div>
-      </nav>
+        {/* Title */}
+        <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-2 tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-red-700 to-red-500">
+          CIT Online Public Access Catalog
+        </h1>
 
-      {/* Main Content */}
-      <div className="pt-20"> {/* Added padding to avoid navbar overlap */}
-        <div className="container mx-auto px-4 py-12">
-          <div className="flex flex-col items-center max-w-4xl mx-auto">
-            <SearchBar onSearch={handleSearch} />
-            <SearchResults results={searchResults} loading={loading} />
-          </div>
-        </div>
+        {/* Subtitle */}
+        <p className="text-sm sm:text-base text-gray-600 max-w-xl mx-auto mb-4">
+          Explore and manage library resources with CIT’s Online Catalog. Find academic and research materials to support your learning.
+        </p>
+      </div>
+
+      {/* Search Bar Section */}
+      <div className="w-full max-w-lg mx-auto mb-1 shadow-lg rounded-lg px-4 sm:px-6 py-4 sm:py-6">
+        <SearchBar onSearch={handleSearch} />
+      </div>
+
+      {/* Search Results Section */}
+      <div className="flex-1 w-full max-w-lg mx-auto mt-2 overflow-y-auto">
+        <SearchResults results={searchResults} loading={loading} searched={searched} />
       </div>
     </div>
   );
